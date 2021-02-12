@@ -5,6 +5,29 @@ require_once 'userselectlocationtype.civix.php';
 use CRM_Userselectlocationtype_ExtensionUtil as E;
 // phpcs:enable
 
+
+function userselectlocationtype_civicrm_buildForm($formName, &$form) {
+
+  // TODO Add Address Location Type Field to profile field options
+  if ($formName == 'CRM_UF_Form_Field') {
+    $fields = $form->getVar('_fields');
+    $fields['address_location_type'] = CRM_Core_DAO_Address::fields()['location_type_id'];
+    $fields['address_location_type']['name'] = 'address_location_type';
+    $form->setVar('_fields', $fields);
+
+    $selectFields = $form->getVar('_selectFields');
+    $selectFields['address_location_type'] = "Address Location Type";
+    $form->setVar('_selectFields', $selectFields);
+    $form->_elements[$form->_elementIndex['field_name']]->_options[1]['Contact']['address_location_type'] = "Address Location Type";
+    $form->_elements[$form->_elementIndex['field_name']]->_options[2]['Contact']['address_location_type'] = '';
+    $form->_mapperFields['Contact']['address_location_type'] = "Address Location Type";
+
+    // TODO add to js here somehow
+    print_r($form->_elements[$form->_elementIndex['field_name']]->_js); die();
+    // $json = json_decode("{" . $form->_elements[$form->_elementIndex['field_name']]->_js . "}", TRUE, TRUE);
+    // var_dump($json); die();
+  }
+}
 /**
  * Implements hook_civicrm_config().
  *
