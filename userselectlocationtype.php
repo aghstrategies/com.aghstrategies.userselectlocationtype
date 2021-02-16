@@ -8,11 +8,14 @@ use CRM_Userselectlocationtype_ExtensionUtil as E;
 
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
 
-  // TODO Add Address Location Type Field to profile field options
+  // This adds the Address Location Type field to the profile field settings options... There has got to be a better way.
+  // TODO find better way of doing this
   if ($formName == 'CRM_UF_Form_Field') {
     $fields = $form->getVar('_fields');
     $fields['address_location_type'] = CRM_Core_DAO_Address::fields()['location_type_id'];
     $fields['address_location_type']['name'] = 'address_location_type';
+    $fields['address_location_type']['import'] = TRUE;
+
     $form->setVar('_fields', $fields);
 
     $selectFields = $form->getVar('_selectFields');
@@ -22,12 +25,16 @@ function userselectlocationtype_civicrm_buildForm($formName, &$form) {
     $form->_elements[$form->_elementIndex['field_name']]->_options[2]['Contact']['address_location_type'] = '';
     $form->_mapperFields['Contact']['address_location_type'] = "Address Location Type";
 
-    // TODO add to js here somehow
-    print_r($form->_elements[$form->_elementIndex['field_name']]->_js); die();
-    // $json = json_decode("{" . $form->_elements[$form->_elementIndex['field_name']]->_js . "}", TRUE, TRUE);
-    // var_dump($json); die();
+    // $js = $form->_elements[$form->_elementIndex['field_name']]->_js;
+    $form->_elements[$form->_elementIndex['field_name']]->_js = str_replace('hs_field_name_Contact = {', 'hs_field_name_Contact = {"address_location_type": "Address Location Type",', $form->_elements[$form->_elementIndex['field_name']]->_js);
+  }
+
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
+    print_r($form->getVar('_fields')); die();
   }
 }
+
+
 /**
  * Implements hook_civicrm_config().
  *
