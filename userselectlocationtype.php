@@ -5,35 +5,64 @@ require_once 'userselectlocationtype.civix.php';
 use CRM_Userselectlocationtype_ExtensionUtil as E;
 // phpcs:enable
 
-
-function userselectlocationtype_civicrm_buildForm($formName, &$form) {
-
-  // This adds the Address Location Type field to the profile field settings options... There has got to be a better way.
-  // TODO find better way of doing this
-  if ($formName == 'CRM_UF_Form_Field') {
-    $fields = $form->getVar('_fields');
-    $fields['address_location_type'] = CRM_Core_DAO_Address::fields()['location_type_id'];
-    $fields['address_location_type']['name'] = 'address_location_type';
-    $fields['address_location_type']['import'] = TRUE;
-
-    $form->setVar('_fields', $fields);
-
-    $selectFields = $form->getVar('_selectFields');
-    $selectFields['address_location_type'] = "Address Location Type";
-    $form->setVar('_selectFields', $selectFields);
-    $form->_elements[$form->_elementIndex['field_name']]->_options[1]['Contact']['address_location_type'] = "Address Location Type";
-    $form->_elements[$form->_elementIndex['field_name']]->_options[2]['Contact']['address_location_type'] = '';
-    $form->_mapperFields['Contact']['address_location_type'] = "Address Location Type";
-
-    // $js = $form->_elements[$form->_elementIndex['field_name']]->_js;
-    $form->_elements[$form->_elementIndex['field_name']]->_js = str_replace('hs_field_name_Contact = {', 'hs_field_name_Contact = {"address_location_type": "Address Location Type",', $form->_elements[$form->_elementIndex['field_name']]->_js);
-  }
-
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main') {
-    print_r($form->getVar('_fields')); die();
+/**
+ * Implements hook_civicrm_queryObjects().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_queryObjects/
+ */
+function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
+  // Adds Address Location Type to Profile Field Options (Under Contact)
+  if ($type == 'Contact') {
+    $queryObjects[] = new CRM_Userselectlocationtype_Locationtype();
   }
 }
 
+/**
+ * Implements hook_civicrm_buildForm().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm/
+ */
+function userselectlocationtype_civicrm_buildForm($formName, &$form) {
+
+
+  if ($formName == 'CRM_UF_Form_Field') {
+    // TODO add settings for:
+    //  - Which location types should be available
+    //  - Whether the address should be saved as primary
+  }
+
+
+  // Set options for Address Location Type Field
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' && isset($form->_fields['address_location_type_id'])) {
+    $addressLocType = $form->getElement('address_location_type_id');
+    $form->removeElement('address_location_type_id');
+
+    // TODO set options to be based off setting
+    $form->add('select', 'address_location_type_id', 'Address Location Type', [ 0 => 'none', 1 => 'Home', 3 => 'Main']);
+  }
+
+  // Save Address Loacation Type based on user selection
+  if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
+
+    if (isset($form->_submitValues['address_location_type_id']) && $form->_submitValues['address_location_type_id'] > 0) {
+      foreach ($form->_fields as $fieldName => &$fieldDetails) {
+        if (!isset($fieldDetails['location_type_id']) && $fieldDetails['bao'] == 'CRM_Core_BAO_Address' && strpos($fieldName, 'Primary') !== false) {
+          $fieldDetails['location_type_id'] = $form->_submitValues['address_location_type_id'];
+          $newName = str_replace('Primary', $form->_submitValues['address_location_type_id'], $fieldName);
+          $form->_params[$newName] = $form->_params[$fieldName];
+          unset($form->_params[$fieldName]);
+        }
+      }
+    }
+  }
+}
+
+// function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+//   if ($objectName == 'Profile') {
+//     print_r($objectId);
+//     print_R($objectRef); die();
+//   }
+// }
 
 /**
  * Implements hook_civicrm_config().
