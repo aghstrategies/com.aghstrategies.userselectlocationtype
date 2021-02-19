@@ -23,13 +23,23 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm/
  */
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit') {
 
-  // If there is an Address Location Type field format it approprately
-  if (isset($form->_fields['address_location_type_id'])) {
-    if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit') {
+    // If there is an Address Location Type field format it approprately
+    if (isset($form->_fields['address_location_type_id'])) {
       $addressLocType = $form->getElement('address_location_type_id');
       $form->removeElement('address_location_type_id');
       $form->addEntityRef('address_location_type_id', ts('Address Location Type'), [
+        'entity' => 'LocationType',
+        'select' => ['minimumInputLength' => 0],
+      ]);
+    }
+
+    // If there is an Email Location Type field format it approprately
+    if (isset($form->_fields['email_location_type_id'])) {
+      $addressLocType = $form->getElement('email_location_type_id');
+      $form->removeElement('email_location_type_id');
+      $form->addEntityRef('email_location_type_id', ts('Email Location Type'), [
         'entity' => 'LocationType',
         'select' => ['minimumInputLength' => 0],
       ]);
@@ -43,6 +53,7 @@ function userselectlocationtype_civicrm_buildForm($formName, &$form) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_post/
  */
 function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+
   // When a profile with an Address Location Type field is submitted, update the location type of the primary address
   if ($objectName == 'Profile') {
     if ($op == 'create' || $op == 'edit' || $op == 'update') {
@@ -53,6 +64,25 @@ function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$obje
             'contact_id' => $objectId,
             'options' => ['limit' => 1],
             'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['address_location_type_id']],
+          ]);
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
+            'domain' => 'com.aghstrategies.userselectlocationtype',
+            1 => $error,
+          )));
+        }
+      }
+
+      // When a profile with an Email Location Type field is submitted, update the location type of the primary email address
+      if (isset($objectRef['email_location_type_id']) && $objectRef['email_location_type_id'] > 0) {
+        try {
+          $address = civicrm_api3('Email', 'get', [
+            'is_primary' => 1,
+            'contact_id' => $objectId,
+            'options' => ['limit' => 1],
+            'api.Email.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['email_location_type_id']],
           ]);
         }
         catch (CiviCRM_API3_Exception $e) {

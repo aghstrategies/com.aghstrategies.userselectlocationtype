@@ -3,20 +3,30 @@
 This extension adds an option when configuring a profile: "Address Location Type". When this field is included on a profile any Address fields with the Location type of "Primary" will be saved based on the location type the user selects in the  "Address Location Type" field.
 
 ## Configuration
+### Address Location Type Field
 When Setting up a profile include:
-1. a "Address Location Type" field
+1. a "Address Location Type" field (under Contacts)
 2. Address fields with the Location type "Primary"
 
 ![Settings](/images/addressLocationTypeField.png)
 
+### Email Location Type Field
+When Setting up a profile include:
+1. a "Email Location Type" field (under Contacts)
+2. an "Email" field with the Location type "Primary"
+
 ## Usage
-When using a profile that has been configured as described in the Configuration section (as a stand alone form, on a contribution form or on a event registration form) the location type the user selects for the "Address Location Type" field will dictate the location type of the Primary address. See tests folder for more details.
+When using a profile that has been configured as described in the Configuration section (as a stand alone form, on a contribution form or on a event registration form)
+
+The location type the user selects for the "Address Location Type" field will dictate the location type of the Primary address.
+
+The Location type the user selects for the "Email Location Type" field will dictate the location type of the Primary address.
+
+See tests folder for more details.
 
 ![Front End UI](/images/profile.png)
 
 ## Future Feature Ideas
-1. Add "Email location type" field for Email Address
-2. Add location type Fields for phone (this will be a little more complicated because of the phone types (Fax, Mobile etc.)
-3. Add settings for:
-  - Which location types should be available
-  - Whether the address should be saved as primary (currently they all are)
+1. Add location type fields for phone (this will be a little more complicated because of the phone types (Fax, Mobile etc.)
+2. Add a settings for which location types should be available either to the location types themselves or when configuring the location type fields on the profile.
+3. Add a setting so the user can decide whether or not the email or address should be saved as primary (currently they all are)
