@@ -24,45 +24,48 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
  */
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
 
-
-  if ($formName == 'CRM_UF_Form_Field') {
-    // TODO add settings for:
-    //  - Which location types should be available
-    //  - Whether the address should be saved as primary
+  // If there is an Address Location Type field format it approprately
+  if (isset($form->_fields['address_location_type_id'])) {
+    if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit') {
+      $addressLocType = $form->getElement('address_location_type_id');
+      $form->removeElement('address_location_type_id');
+      $form->addEntityRef('address_location_type_id', ts('Address Location Type'), [
+        'entity' => 'LocationType',
+        'select' => ['minimumInputLength' => 0],
+      ]);
+    }
   }
+}
 
-
-  // Set options for Address Location Type Field
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main' && isset($form->_fields['address_location_type_id'])) {
-    $addressLocType = $form->getElement('address_location_type_id');
-    $form->removeElement('address_location_type_id');
-
-    // TODO set options to be based off setting
-    $form->add('select', 'address_location_type_id', 'Address Location Type', [ 0 => 'none', 1 => 'Home', 3 => 'Main']);
-  }
-
-  // Save Address Loacation Type based on user selection
-  if ($formName == 'CRM_Contribute_Form_Contribution_Confirm') {
-
-    if (isset($form->_submitValues['address_location_type_id']) && $form->_submitValues['address_location_type_id'] > 0) {
-      foreach ($form->_fields as $fieldName => &$fieldDetails) {
-        if (!isset($fieldDetails['location_type_id']) && $fieldDetails['bao'] == 'CRM_Core_BAO_Address' && strpos($fieldName, 'Primary') !== false) {
-          $fieldDetails['location_type_id'] = $form->_submitValues['address_location_type_id'];
-          $newName = str_replace('Primary', $form->_submitValues['address_location_type_id'], $fieldName);
-          $form->_params[$newName] = $form->_params[$fieldName];
-          unset($form->_params[$fieldName]);
+/**
+ * Implements hook_civicrm_post().
+ *
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_post/
+ */
+function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+  // When a profile with an Address Location Type field is submitted, update the location type of the primary address
+  if ($objectName == 'Profile') {
+    if ($op == 'create' || $op == 'edit' || $op == 'update') {
+      if (isset($objectRef['address_location_type_id']) && $objectRef['address_location_type_id'] > 0) {
+        try {
+          $address = civicrm_api3('Address', 'get', [
+            'is_primary' => 1,
+            'contact_id' => $objectId,
+            'options' => ['limit' => 1],
+            'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['address_location_type_id']],
+          ]);
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
+            'domain' => 'com.aghstrategies.userselectlocationtype',
+            1 => $error,
+          )));
         }
       }
     }
   }
 }
-
-// function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$objectRef) {
-//   if ($objectName == 'Profile') {
-//     print_r($objectId);
-//     print_R($objectRef); die();
-//   }
-// }
 
 /**
  * Implements hook_civicrm_config().

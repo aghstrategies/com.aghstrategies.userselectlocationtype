@@ -1,44 +1,22 @@
 # com.aghstrategies.userselectlocationtype
 
-![Screenshot](/images/screenshot.png)
+This extension adds an option when configuring a profile: "Address Location Type". When this field is included on a profile any Address fields with the Location type of "Primary" will be saved based on the location type the user selects in the  "Address Location Type" field.
 
-(*FIXME: In one or two paragraphs, describe what the extension does and why one would download it. *)
+## Configuration
+When Setting up a profile include:
+1. a "Address Location Type" field
+2. Address fields with the Location type "Primary"
 
-The extension is licensed under [AGPL-3.0](LICENSE.txt).
-
-## Requirements
-
-* PHP v7.0+
-* CiviCRM (*FIXME: Version number*)
-
-## Installation (Web UI)
-
-This extension has not yet been published for installation via the web UI.
-
-## Installation (CLI, Zip)
-
-Sysadmins and developers may download the `.zip` file for this extension and
-install it with the command-line tool [cv](https://github.com/civicrm/cv).
-
-```bash
-cd <extension-dir>
-cv dl com.aghstrategies.userselectlocationtype@https://github.com/FIXME/com.aghstrategies.userselectlocationtype/archive/master.zip
-```
-
-## Installation (CLI, Git)
-
-Sysadmins and developers may clone the [Git](https://en.wikipedia.org/wiki/Git) repo for this extension and
-install it with the command-line tool [cv](https://github.com/civicrm/cv).
-
-```bash
-git clone https://github.com/FIXME/com.aghstrategies.userselectlocationtype.git
-cv en userselectlocationtype
-```
+![Settings](/images/addressLocationTypeField.png)
 
 ## Usage
+When using a profile that has been configured as described in the Configuration section (as a stand alone form, on a contribution form or on a event registration form) the location type the user selects for the "Address Location Type" field will dictate the location type of the Primary address. See tests folder for more details.
 
-(* FIXME: Where would a new user navigate to get started? What changes would they see? *)
+![Front End UI](/images/profile.png)
 
-## Known Issues
-
-(* FIXME *)
+## Future Feature Ideas
+1. Add "Email location type" field for Email Address
+2. Add location type Fields for phone (this will be a little more complicated because of the phone types (Fax, Mobile etc.)
+3. Add settings for:
+  - Which location types should be available
+  - Whether the address should be saved as primary (currently they all are)
