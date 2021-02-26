@@ -58,6 +58,28 @@ class CRM_Userselectlocationtype_Locationtype extends CRM_Core_DAO {
           ],
           'add' => '2.0',
         ],
+        'phone_location_type_id' => [
+          'name' => 'phone_location_type_id',
+          'html_type' => 'Select',
+          'type' => CRM_Utils_Type::T_INT,
+          'title' => ts('Phone Location Type'),
+          'description' => ts('Which Location does this Phone belong to.'),
+          'table_name' => 'civicrm_phone',
+          'where' => 'civicrm_phone.location_type_id',
+          'entity' => 'Phone',
+          'bao' => 'CRM_Core_BAO_Phone',
+          'localizable' => 0,
+          'html' => [
+            'type' => 'Select',
+          ],
+          'import' => TRUE,
+          'pseudoconstant' => [
+            'table' => 'civicrm_location_type',
+            'keyColumn' => 'id',
+            'labelColumn' => 'display_name',
+          ],
+          'add' => '2.0',
+        ],
       ];
     }
     return self::$_fields;
