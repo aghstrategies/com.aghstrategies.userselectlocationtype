@@ -58,71 +58,45 @@ function userselectlocationtype_civicrm_buildForm($formName, &$form) {
 }
 
 /**
- * Implements hook_civicrm_post().
+ * Implements hook_civicrm_pre().
  *
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_post/
  */
-function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$objectRef) {
+function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objectRef) {
 
   // When a profile with an Address Location Type field is submitted, update the location type of the primary address
   if ($objectName == 'Profile') {
     if ($op == 'create' || $op == 'edit' || $op == 'update') {
       if (isset($objectRef['address_location_type_id']) && $objectRef['address_location_type_id'] > 0) {
-        try {
-          $address = civicrm_api3('Address', 'get', [
-            'is_primary' => 1,
-            'contact_id' => $objectId,
-            'options' => ['limit' => 1],
-            'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['address_location_type_id']],
-          ]);
-        }
-        catch (CiviCRM_API3_Exception $e) {
-          $error = $e->getMessage();
-          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
-            'domain' => 'com.aghstrategies.userselectlocationtype',
-            1 => $error,
-          )));
-        }
-      }
-
-      // When a profile with an Phone Location Type field is submitted, update the location type of the primary phone
-      if (isset($objectRef['phone_location_type_id']) && $objectRef['phone_location_type_id'] > 0) {
-        try {
-          $address = civicrm_api3('Phone', 'get', [
-            'is_primary' => 1,
-            'contact_id' => $objectId,
-            'options' => ['limit' => 1],
-            'phone_type_id' => "Phone",
-            'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['phone_location_type_id']],
-          ]);
-        }
-        catch (CiviCRM_API3_Exception $e) {
-          $error = $e->getMessage();
-          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
-            'domain' => 'com.aghstrategies.userselectlocationtype',
-            1 => $error,
-          )));
+        $addressFields = [
+          'street_address',
+          'supplemental_address_1',
+          'supplemental_address_2',
+          'supplemental_address_3',
+          'city',
+          'county_id',
+          'state_province_id',
+          'postal_code',
+          'country_id',
+        ];
+        foreach ($addressFields as $key => $fieldName) {
+          if (isset($objectRef["$fieldName-Primary"])) {
+            $objectRef["$fieldName-{$objectRef['address_location_type_id']}"] = $objectRef["$fieldName-Primary"];
+            unset($objectRef["$fieldName-Primary"]);
+          }
         }
       }
 
-      // When a profile with an Email Location Type field is submitted, update the location type of the primary email address
-      if (isset($objectRef['email_location_type_id']) && $objectRef['email_location_type_id'] > 0) {
-        try {
-          $address = civicrm_api3('Email', 'get', [
-            'is_primary' => 1,
-            'contact_id' => $objectId,
-            'options' => ['limit' => 1],
-            'api.Email.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['email_location_type_id']],
-          ]);
-        }
-        catch (CiviCRM_API3_Exception $e) {
-          $error = $e->getMessage();
-          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
-            'domain' => 'com.aghstrategies.userselectlocationtype',
-            1 => $error,
-          )));
-        }
+      if (isset($objectRef['email_location_type_id']) && $objectRef['email_location_type_id'] > 0 && isset($objectRef['email-Primary'])) {
+        $objectRef["email-{$objectRef['email_location_type_id']}"] = $objectRef['email-Primary'];
+        unset($objectRef['email-Primary']);
       }
+
+      if (isset($objectRef['phone_location_type_id']) && $objectRef['phone_location_type_id'] > 0 && isset($objectRef['phone-Primary-1'])) {
+        $objectRef["phone-{$objectRef['phone_location_type_id']}-1"] = $objectRef['phone-Primary-1'];
+        unset($objectRef['phone-Primary-1']);
+      }
+
     }
   }
 }
