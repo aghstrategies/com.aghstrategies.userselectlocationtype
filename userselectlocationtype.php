@@ -44,6 +44,16 @@ function userselectlocationtype_civicrm_buildForm($formName, &$form) {
         'select' => ['minimumInputLength' => 0],
       ]);
     }
+
+    // If there is an Phone Location Type field format it approprately
+    if (isset($form->_fields['phone_location_type_id'])) {
+      $addressLocType = $form->getElement('phone_location_type_id');
+      $form->removeElement('phone_location_type_id');
+      $form->addEntityRef('phone_location_type_id', ts('Phone Location Type'), [
+        'entity' => 'LocationType',
+        'select' => ['minimumInputLength' => 0],
+      ]);
+    }
   }
 }
 
@@ -64,6 +74,26 @@ function userselectlocationtype_civicrm_post($op, $objectName, $objectId, &$obje
             'contact_id' => $objectId,
             'options' => ['limit' => 1],
             'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['address_location_type_id']],
+          ]);
+        }
+        catch (CiviCRM_API3_Exception $e) {
+          $error = $e->getMessage();
+          CRM_Core_Error::debug_log_message(E::ts('API Error %1', array(
+            'domain' => 'com.aghstrategies.userselectlocationtype',
+            1 => $error,
+          )));
+        }
+      }
+
+      // When a profile with an Phone Location Type field is submitted, update the location type of the primary phone
+      if (isset($objectRef['phone_location_type_id']) && $objectRef['phone_location_type_id'] > 0) {
+        try {
+          $address = civicrm_api3('Phone', 'get', [
+            'is_primary' => 1,
+            'contact_id' => $objectId,
+            'options' => ['limit' => 1],
+            'phone_type_id' => "Phone",
+            'api.Address.create' => ['id' => "\$value.id", 'location_type_id' => $objectRef['phone_location_type_id']],
           ]);
         }
         catch (CiviCRM_API3_Exception $e) {
