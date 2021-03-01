@@ -71,19 +71,19 @@ function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objec
       // AGH #25018 Custom State/Country Hack because core Country/State fields are not accessible at the moment.
 
       // IF the user has selected a country field
-      if (isset($objectRef['custom_901'])) {
+      if (isset($objectRef['custom_881'])) {
 
         // Save Custom Country as Country
-        $objectRef['country_id-Primary'] = $objectRef['custom_901'];
+        $objectRef['country_id-Primary'] = $objectRef['custom_881'];
 
         // If the user has selected a custom state field
-        if (isset($objectRef['custom_900'])) {
+        if (isset($objectRef['custom_880'])) {
 
           // check that the state selected is a valid state option for the selected country
           try {
             $validState = civicrm_api3('StateProvince', 'get', [
-              'country_id' => $objectRef['custom_901'],
-              'id' => $objectRef['custom_900'],
+              'country_id' => $objectRef['custom_881'],
+              'id' => $objectRef['custom_880'],
             ]);
           }
           catch (CiviCRM_API3_Exception $e) {
