@@ -64,9 +64,40 @@ function userselectlocationtype_civicrm_buildForm($formName, &$form) {
  */
 function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objectRef) {
 
-  // When a profile with an Address Location Type field is submitted, update the location type of the primary address
   if ($objectName == 'Profile') {
     if ($op == 'create' || $op == 'edit' || $op == 'update') {
+
+      // AGH #25018 Custom State/Country Hack because core Country/State fields are not accessible at the moment.
+
+      // IF the user has selected a country field
+      if (isset($objectRef['custom_901'])) {
+
+        // Save Custom Country as Country
+        $objectRef['country_id-Primary'] = $objectRef['custom_901'];
+
+        // If the user has selected a custom state field
+        if (isset($objectRef['custom_900'])) {
+
+          // check that the state selected is a valid state option for the selected country
+          try {
+            $validState = civicrm_api3('StateProvince', 'get', [
+              'country_id' => $objectRef['custom_901'],
+              'id' => $objectRef['custom_900'],
+            ]);
+          }
+          catch (CiviCRM_API3_Exception $e) {
+            $error = $e->getMessage();
+            CRM_Core_Error::debug_log_message(ts('API Error: %1', [1 => $error, 'domain' => 'com.aghstrategies.userselectlocationtype']));
+          }
+
+          // Save the custom state as the state
+          if ($validState['count'] == 1 && isset($validState['id'])) {
+            $objectRef['state_province_id-Primary'] = $validState['id'];
+          }
+        }
+      }
+
+      // When a profile with an Address Location Type field is submitted, update the location type of the primary address
       if (isset($objectRef['address_location_type_id']) && $objectRef['address_location_type_id'] > 0) {
         $addressFields = [
           'street_address',
@@ -79,6 +110,7 @@ function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objec
           'postal_code',
           'country_id',
         ];
+
         foreach ($addressFields as $key => $fieldName) {
           if (isset($objectRef["$fieldName-Primary"])) {
             $objectRef["$fieldName-{$objectRef['address_location_type_id']}"] = $objectRef["$fieldName-Primary"];
