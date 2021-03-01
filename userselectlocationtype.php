@@ -25,34 +25,35 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit') {
 
+    $locationTypeOptions = [
+      // ID 1
+      'Home' => 'Home',
+      // ID 2
+      'Work' => 'Work',
+      // ID 4
+      'Other' => 'Other',
+    ];
+
     // If there is an Address Location Type field format it approprately
     if (isset($form->_fields['address_location_type_id'])) {
       $addressLocType = $form->getElement('address_location_type_id');
       $form->removeElement('address_location_type_id');
-      $form->addEntityRef('address_location_type_id', ts('Address Location Type'), [
-        'entity' => 'LocationType',
-        'select' => ['minimumInputLength' => 0],
-      ]);
+      $form->add('select', 'address_location_type_id', ts('Address Location Type'), $locationTypeOptions, FALSE, ['placeholder' => TRUE]);
     }
 
     // If there is an Email Location Type field format it approprately
     if (isset($form->_fields['email_location_type_id'])) {
       $addressLocType = $form->getElement('email_location_type_id');
       $form->removeElement('email_location_type_id');
-      $form->addEntityRef('email_location_type_id', ts('Email Location Type'), [
-        'entity' => 'LocationType',
-        'select' => ['minimumInputLength' => 0],
-      ]);
+      $form->add('select', 'email_location_type_id', ts('Email Location Type'), $locationTypeOptions, FALSE, ['placeholder' => TRUE]);
+
     }
 
     // If there is an Phone Location Type field format it approprately
     if (isset($form->_fields['phone_location_type_id'])) {
       $addressLocType = $form->getElement('phone_location_type_id');
       $form->removeElement('phone_location_type_id');
-      $form->addEntityRef('phone_location_type_id', ts('Phone Location Type'), [
-        'entity' => 'LocationType',
-        'select' => ['minimumInputLength' => 0],
-      ]);
+      $form->add('select', 'phone_location_type_id', ts('Phone Location Type'), $locationTypeOptions, FALSE, ['placeholder' => TRUE]);
     }
   }
 }
@@ -97,8 +98,14 @@ function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objec
         }
       }
 
+      $locationTypeOptions = [
+        'Home' => 1,
+        'Work' => 2,
+        'Other' => 4,
+      ];
+
       // When a profile with an Address Location Type field is submitted, update the location type of the primary address
-      if (isset($objectRef['address_location_type_id']) && $objectRef['address_location_type_id'] > 0) {
+      if (isset($locationTypeOptions[$objectRef['address_location_type_id']]) && $locationTypeOptions[$objectRef['address_location_type_id']] > 0) {
         $addressFields = [
           'street_address',
           'supplemental_address_1',
@@ -113,19 +120,19 @@ function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objec
 
         foreach ($addressFields as $key => $fieldName) {
           if (isset($objectRef["$fieldName-Primary"])) {
-            $objectRef["$fieldName-{$objectRef['address_location_type_id']}"] = $objectRef["$fieldName-Primary"];
+            $objectRef["$fieldName-{$locationTypeOptions[$objectRef['address_location_type_id']]}"] = $objectRef["$fieldName-Primary"];
             unset($objectRef["$fieldName-Primary"]);
           }
         }
       }
 
-      if (isset($objectRef['email_location_type_id']) && $objectRef['email_location_type_id'] > 0 && isset($objectRef['email-Primary'])) {
-        $objectRef["email-{$objectRef['email_location_type_id']}"] = $objectRef['email-Primary'];
+      if (isset($locationTypeOptions[$objectRef['email_location_type_id']]) && $locationTypeOptions[$objectRef['email_location_type_id']] > 0 && isset($objectRef['email-Primary'])) {
+        $objectRef["email-{$locationTypeOptions[$objectRef['email_location_type_id']]}"] = $objectRef['email-Primary'];
         unset($objectRef['email-Primary']);
       }
 
-      if (isset($objectRef['phone_location_type_id']) && $objectRef['phone_location_type_id'] > 0 && isset($objectRef['phone-Primary-1'])) {
-        $objectRef["phone-{$objectRef['phone_location_type_id']}-1"] = $objectRef['phone-Primary-1'];
+      if (isset($locationTypeOptions[$objectRef['phone_location_type_id']]) && $locationTypeOptions[$objectRef['phone_location_type_id']] > 0 && isset($objectRef['phone-Primary-1'])) {
+        $objectRef["phone-{$locationTypeOptions[$objectRef['phone_location_type_id']]}-1"] = $objectRef['phone-Primary-1'];
         unset($objectRef['phone-Primary-1']);
       }
 
