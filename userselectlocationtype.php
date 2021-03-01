@@ -23,7 +23,7 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
  * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_buildForm/
  */
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
-  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit') {
+  if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit' || $formName == 'CRM_Event_Form_Registration_AdditionalParticipant') {
 
     $locationTypeOptions = [
       // ID 1
