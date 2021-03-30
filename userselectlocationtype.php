@@ -17,6 +17,30 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
   }
 }
 
+function userselectlocationtype_loctypeoptions($style) {
+  $locationTypeOptions = [];
+  try {
+    $locTypes = civicrm_api3('LocationType', 'get', [
+      'name' => ['IN' => ["Home", "Work", "Other"]],
+    ]);
+  }
+  catch (CiviCRM_API3_Exception $e) {
+    $error = $e->getMessage();
+    CRM_Core_Error::debug_log_message(ts('API Error %1', array(
+      'domain' => 'com.aghstrategies.userselectlocationtype',
+      1 => $error,
+    )));
+  }
+  if (!empty($locTypes['values'])) {
+    foreach ($locTypes['values'] as $id => $locType) {
+      if (isset($locType[$style]) && isset($locType['name'])) {
+        $locationTypeOptions[$locType['name']] = $locType[$style];
+      }
+    }
+  }
+  return $locationTypeOptions;
+}
+
 /**
  * Implements hook_civicrm_buildForm().
  *
@@ -25,14 +49,7 @@ function userselectlocationtype_civicrm_queryObjects(&$queryObjects, $type) {
 function userselectlocationtype_civicrm_buildForm($formName, &$form) {
   if ($formName == 'CRM_Contribute_Form_Contribution_Main' || $formName == 'CRM_Event_Form_Registration_Register' || $formName == 'CRM_Profile_Form_Edit' || $formName == 'CRM_Event_Form_Registration_AdditionalParticipant') {
 
-    $locationTypeOptions = [
-      // ID 1
-      'Home' => 'Home',
-      // ID 2
-      'Work' => 'Work',
-      // ID 4
-      'Other' => 'Other',
-    ];
+    $locationTypeOptions = userselectlocationtype_loctypeoptions('name');
 
     // If there is an Address Location Type field format it approprately
     if (isset($form->_fields['address_location_type_id'])) {
@@ -68,41 +85,7 @@ function userselectlocationtype_civicrm_pre($op, $objectName, $objectId, &$objec
   if ($objectName == 'Profile') {
     if ($op == 'create' || $op == 'edit' || $op == 'update') {
 
-      // AGH #25018 Custom State/Country Hack because core Country/State fields are not accessible at the moment.
-
-      // IF the user has selected a country field
-      if (isset($objectRef['custom_881'])) {
-
-        // Save Custom Country as Country
-        $objectRef['country_id-Primary'] = $objectRef['custom_881'];
-
-        // If the user has selected a custom state field
-        if (isset($objectRef['custom_880'])) {
-
-          // check that the state selected is a valid state option for the selected country
-          try {
-            $validState = civicrm_api3('StateProvince', 'get', [
-              'country_id' => $objectRef['custom_881'],
-              'id' => $objectRef['custom_880'],
-            ]);
-          }
-          catch (CiviCRM_API3_Exception $e) {
-            $error = $e->getMessage();
-            CRM_Core_Error::debug_log_message(ts('API Error: %1', [1 => $error, 'domain' => 'com.aghstrategies.userselectlocationtype']));
-          }
-
-          // Save the custom state as the state
-          if ($validState['count'] == 1 && isset($validState['id'])) {
-            $objectRef['state_province_id-Primary'] = $validState['id'];
-          }
-        }
-      }
-
-      $locationTypeOptions = [
-        'Home' => 1,
-        'Work' => 2,
-        'Other' => 4,
-      ];
+      $locationTypeOptions = userselectlocationtype_loctypeoptions('id');
 
       // When a profile with an Address Location Type field is submitted, update the location type of the primary address
       if (isset($locationTypeOptions[$objectRef['address_location_type_id']]) && $locationTypeOptions[$objectRef['address_location_type_id']] > 0) {

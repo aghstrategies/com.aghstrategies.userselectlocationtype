@@ -37,8 +37,7 @@ See tests folder for more details.
 3. Add a setting so the user can decide whether or not the email or address should be saved as primary (currently follows civi logic to determine the primary)
 
 ## NFB Branch specific changes
-1. AGH #25018 Save the custom fields "Custom Country" and "Custom State" to the address
-2. AGH #24831
+AGH #24831
   - style Location type fields as selects
   - ensure that the location type label is displayed on the confirm and thank you pages (as opposed to the id)
   - limit location type options to "Home", "Work" and "Other"
